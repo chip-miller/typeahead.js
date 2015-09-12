@@ -423,6 +423,7 @@
             this.identify = o.identify || _.stringify;
             this.datumTokenizer = o.datumTokenizer;
             this.queryTokenizer = o.queryTokenizer;
+            this.matchAnyQueryToken = o.matchAnyQueryToken;
             this.reset();
         }
         _.mixin(SearchIndex.prototype, {
@@ -459,7 +460,7 @@
                 tokens = normalizeTokens(this.queryTokenizer(query));
                 _.each(tokens, function(token) {
                     var node, chars, ch, ids;
-                    if (matches && matches.length === 0) {
+                    if (matches && matches.length === 0 && !that.matchAnyQueryToken) {
                         return false;
                     }
                     node = that.trie;
@@ -471,8 +472,10 @@
                         ids = node[IDS].slice(0);
                         matches = matches ? getIntersection(matches, ids) : ids;
                     } else {
-                        matches = [];
-                        return false;
+                        if (!that.matchAnyQueryToken) {
+                            matches = [];
+                            return false;
+                        }
                     }
                 });
                 return matches ? _.map(unique(matches), function(id) {
@@ -655,6 +658,7 @@
                 identify: _.stringify,
                 datumTokenizer: null,
                 queryTokenizer: null,
+                matchAnyQueryToken: false,
                 sufficient: 5,
                 sorter: null,
                 local: [],
